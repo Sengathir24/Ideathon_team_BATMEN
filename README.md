@@ -89,11 +89,8 @@ Ideathon_team_BATMEN/
    ```bash
    cd Ideathon_team_BATMEN
    ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. (Optional) Set up a virtual environment:
+
+3. (Optional) Set up a virtual environment:
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows use: venv\Scripts\activate

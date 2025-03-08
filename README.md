@@ -142,12 +142,31 @@ This project is licensed under the [MIT License](LICENSE).
 - **GitHub:** [@Sengathir24](https://github.com/Sengathir24)  
 - **Email:** [sengathirsoorian@gmail.com](sengathirsoorian@gmail.com)  
 
+---
+
+## 📸 Validation Images
+To showcase the validation results of our welding defect detection model, we've included sample images from the validation set located in the [`data/runs/detect/val2`](https://github.com/Sengathir24/Ideathon_team_BATMEN/tree/main/data/runs/detect/val2) directory.
+
+**Sample Validation Images:**
+
+![Validation Image 1](https://github.com/Sengathir24/Ideathon_team_BATMEN/raw/main/data/runs/detect/val2/image1.jpg)
+
+![Validation Image 2](https://github.com/Sengathir24/Ideathon_team_BATMEN/raw/main/data/runs/detect/val2/image2.jpg)
+
+![Validation Image 3](https://github.com/Sengathir24/Ideathon_team_BATMEN/raw/main/data/runs/detect/val2/image3.jpg)
+
+![Validation Image 4](https://github.com/Sengathir24/Ideathon_team_BATMEN/raw/main/data/runs/detect/val2/image4.jpg)
+
+![Validation Image 5](https://github.com/Sengathir24/Ideathon_team_BATMEN/raw/main/data/runs/detect/val2/image5.jpg)
+
+These images demonstrate the model's ability to accurately detect and classify various welding defects, highlighting its effectiveness in quality control applications.
 
 ---
+
 
 ## 🙏 Acknowledgments
 - Special thanks to **Coding club** for organizing the Ideathon.
 - **YOLOv8 community** for making object detection accessible.
 - **Mentors & Teammates** for support and collaboration.
-```
+
 

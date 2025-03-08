@@ -35,8 +35,7 @@ This project is developed by **Team BATMEN** as part of the **Ideathon** challen
 - **Deep Learning:** YOLOv8 for object detection
 - **Programming Language:** Python
 - **Frameworks & Libraries:** PyTorch, OpenCV, NumPy, Pandas, Matplotlib
-- **Tools:** Jupyter Notebook, GitHub, Docker
-- **Deployment:** Flask/FastAPI (for potential integration)
+- **Tools:** Jupyter Notebook, GitHub,
 
 ---
 
@@ -144,21 +143,14 @@ This project is licensed under the [MIT License](LICENSE).
 **Team BATMEN**  
 - **Lead Developer:** Sengathirsoorian  
 - **GitHub:** [@Sengathir24](https://github.com/Sengathir24)  
-- **Email:** [your.email@example.com](mailto:your.email@example.com)  
-- **Project Website:** [Coming Soon]  
+- **Email:** [sengathirsoorian@gmail.com](sengathirsoorian@gmail.com)  
+
 
 ---
 
 ## 🙏 Acknowledgments
-- Special thanks to **Uyir Organizations** for organizing the Ideathon.
+- Special thanks to **Coding club** for organizing the Ideathon.
 - **YOLOv8 community** for making object detection accessible.
 - **Mentors & Teammates** for support and collaboration.
 ```
 
-### 🔥 Improvements & Customization:
-- Add **screenshots** of model results.
-- Include **pretrained model download links** if applicable.
-- Replace **placeholder email & website** with actual details.
-- Add **"Future Enhancements"** section for upcoming improvements.
-
-Let me know if you want any modifications! 🚀

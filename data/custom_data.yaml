@@ -1,0 +1,5 @@
+train: D:/data/Weld/train/images
+val: D:/data/Weld/valid/images
+test: D:/data/Weld/test/images
+nc: 6
+names: ['Bad Welding', 'Crack', 'Excess Reinforcement', 'Good Welding', 'Porosity', 'Spatters']

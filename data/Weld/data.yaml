@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 6
+names: ['Bad Welding', 'Crack', 'Excess Reinforcement', 'Good Welding', 'Porosity', 'Spatters']
+
+roboflow:
+  workspace: welding-2bplp
+  project: weld-quality-inspection-rei9l
+  version: 9
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/welding-2bplp/weld-quality-inspection-rei9l/dataset/9

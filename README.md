@@ -149,11 +149,11 @@ To showcase the validation results of our welding defect detection model, we've 
 
 **Sample Validation Images:**
 
-![Validation Image 1](https://github.com/Sengathir24/Ideathon_team_BATMEN/raw/main/data/runs/detect/val2/val_batch0_label.jpg)
+![Validation Image 1](https://github.com/Sengathir24/Ideathon_team_BATMEN/raw/main/data/runs/detect/val2/val_batch0_labels.jpg)
 
 ![Validation Image 2](https://github.com/Sengathir24/Ideathon_team_BATMEN/raw/main/data/runs/detect/val2/val_batch0_pred.jpg)
 
-![Validation Image 3](https://github.com/Sengathir24/Ideathon_team_BATMEN/raw/main/data/runs/detect/val2/val_batch1_label.jpg)
+![Validation Image 3](https://github.com/Sengathir24/Ideathon_team_BATMEN/raw/main/data/runs/detect/val2/val_batch1_labels.jpg)
 
 ![Validation Image 4](https://github.com/Sengathir24/Ideathon_team_BATMEN/raw/main/data/runs/detect/val2/val_batch1_pred.jpg)
 

@@ -1,182 +1,144 @@
-# =====================================================
-# GPU Configuration & Setup
-# =====================================================
-import os
-import torch
+# Step 1: Import necessary modules
 from ultralytics import YOLO
-from ultralytics.nn.modules import C2f
-from ultralytics.nn.modules.block import CBAM  # Correct CBAM import
-
-# Fix for Windows OpenMP issues
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
-
-# CUDA compatibility checks
-print("CUDA Available:", torch.cuda.is_available())
-print("GPU:", torch.cuda.get_device_name(0))
-print("PyTorch version:", torch.__version__)
-print("CUDA version:", torch.version.cuda)
-
-# Optimize GPU memory usage
-torch.cuda.empty_cache()
-torch.backends.cuda.matmul.allow_tf32 = True
-torch.backends.cudnn.allow_tf32 = True
+import torch
+import os
 
 # =====================================================
-# Dataset Cleaning & Preparation
+# Step 2: Configure dataset paths (MODIFY THESE VARIABLES)
 # =====================================================
-def clean_dataset():
-    """Clean duplicate labels and invalid annotations"""
-    from glob import glob
-    
-    for split in ['train', 'valid']:
-        label_dir = f'D:/data/Weld/{split}/labels'
-        for file in glob(f'{label_dir}/*.txt'):
-            with open(file, 'r') as f:
-                lines = f.readlines()
-            # Remove duplicates and invalid entries
-            valid_lines = []
-            seen = set()
-            for line in lines:
-                stripped = line.strip()
-                if stripped and len(stripped.split()) == 5 and stripped not in seen:
-                    valid_lines.append(stripped)
-                    seen.add(stripped)
-            with open(file, 'w') as f:
-                f.write('\n'.join(valid_lines))
-
-clean_dataset()
-
-# =====================================================
-# Dataset Configuration
-# =====================================================
-BASE_DIR = r"D:\data\Weld"
+BASE_DIR = r"D:\ML2\Weld quality inspection - Segmentation"  # <--- UPDATE THIS TO YOUR DATASET PATH
 TRAIN_IMAGES = os.path.join(BASE_DIR, "train", "images")
+TRAIN_LABELS = os.path.join(BASE_DIR, "train", "labels")
 VALID_IMAGES = os.path.join(BASE_DIR, "valid", "images")
+VALID_LABELS = os.path.join(BASE_DIR, "valid", "labels")
 TEST_IMAGES = os.path.join(BASE_DIR, "test", "images")
+TEST_LABELS = os.path.join(BASE_DIR, "test", "labels")
 
+# Create data.yaml configuration file programmatically
 def create_data_yaml():
-    train_path = TRAIN_IMAGES.replace("\\", "/")
-    val_path = VALID_IMAGES.replace("\\", "/")
-    test_path = TEST_IMAGES.replace("\\", "/")
-    
-    data_config = f"""train: {train_path}
-val: {val_path}
-test: {test_path}
-nc: 6
-names: ['Bad Welding', 'Crack', 'Excess Reinforcement', 'Good Welding', 'Porosity', 'Spatters']"""
-    
-    with open("custom_data.yaml", "w") as f:
-        f.write(data_config)
-    print(f"\nCreated custom_data.yaml with:\n{data_config}")
+    data_config = f"""
+train: {TRAIN_IMAGES}
+val: {VALID_IMAGES}
+test: {TEST_IMAGES}
 
+nc: 6
+names: ['Bad Welding', 'Crack', 'Excess Reinforcement', 'Good Welding', 'Porosity', 'Spatters']
+"""
+    with open("custom_data.yaml", "w") as f:
+        f.write(data_config.strip())
+    print(f"Created custom_data.yaml with:\n{data_config}")
+
+# Initialize configuration
 create_data_yaml()
 
 # =====================================================
-# Model Architecture Modification (with CBAM Attention)
-# =====================================================
-def create_attention_model():
-    """Add CBAM attention to YOLOv8n backbone"""
-    model = YOLO('yolov8n.pt')
-    
-    # Access model layers
-    layers = model.model.model
-    
-    # Add CBAM after each C2f layer
-    for i, layer in enumerate(layers):
-        if isinstance(layer, C2f):
-            # Get output channels from layer
-            out_channels = layer.cv2.conv.out_channels
-            
-            # Create CBAM module
-            cbam = CBAM(channels=out_channels)
-            
-            # Insert CBAM after C2f layer
-            layers[i] = torch.nn.Sequential(
-                layer,
-                cbam
-            ).to('cuda')
-    
-    return model.to('cuda')
-
-# =====================================================
-# Optimized Training Configuration
+# Step 3: Optimized Training Configuration
 # =====================================================
 def train_model():
-    model = create_attention_model()
+    # Ensure GPU is used
+    device = 0 if torch.cuda.is_available() else 'cpu'
+    print(f"Using device: {'GPU' if device == 0 else 'CPU'}")
     
+    model = YOLO('yolov8n.pt')  # Start with pretrained weights
+    
+    # Optimize for RTX 3050 (6GB VRAM)
     results = model.train(
-        data="custom_data.yaml",
-        epochs=300,
-        imgsz=640,
-        batch=8,
-        device=0,
-        workers=4,
+        data="custom_data.yaml",         # Path to data.yaml
+        epochs=200,                     # Increase epochs for better convergence
+        imgsz=640,                      # Image size (balance between resolution and memory)
+        batch=8,                        # Batch size optimized for 6GB VRAM
+        device=device,                  # Explicitly set device (0 for GPU)
+        workers=4,                      # Number of CPU threads for data loading
         project='welding_defects',
-        name='final_training',
-        val=True,
-        augment=True,
-        cache=False,
-        amp=True,
-        cos_lr=True,
-        # Hyperparameters
-        lr0=0.0005,
-        lrf=0.001,
-        momentum=0.96,
-        weight_decay=0.0001,
-        warmup_epochs=5,
-        box=5.0,
-        cls=0.25,
-        # Augmentation
-        hsv_h=0.02,
-        hsv_s=0.8,
-        hsv_v=0.5,
-        degrees=10,
-        scale=0.7,
-        shear=0.2,
-        perspective=0.001,
-        mixup=0.2,
-        copy_paste=0.3,
-        mosaic=0.8,
-        close_mosaic=20
+        name='gpu_training_optimized',
+        val=True,                       # Enable validation during training
+        augment=True,                   # Enable data augmentation
+        cache='disk',                   # Cache images on disk for deterministic training
+        amp=True,                       # Mixed precision training (float16 + float32)
+        lr0=0.001,                      # Initial learning rate
+        lrf=0.01,                       # Final learning rate (as a fraction of lr0)
+        cos_lr=True,                    # Use cosine learning rate decay
+        optimizer='AdamW',              # AdamW optimizer for better generalization
+        momentum=0.937,                 # Momentum for SGD (if using SGD)
+        weight_decay=0.0005,            # Regularization to prevent overfitting
+        close_mosaic=10,                # Disable mosaic augmentation in the last 10 epochs
+        mosaic=1.0,                     # Enable mosaic augmentation
+        mixup=0.1,                      # Mixup probability
+        copy_paste=0.1,                 # Copy-paste augmentation for overlapping objects
+        hsv_h=0.015,                    # HSV hue augmentation
+        hsv_s=0.7,                      # HSV saturation augmentation
+        hsv_v=0.4,                      # HSV value augmentation
+        degrees=10,                     # Random rotation
+        translate=0.1,                  # Random translation
+        scale=0.5,                      # Random scaling
+        shear=0.0,                      # Random shear
+        perspective=0.0,                # Random perspective transformation
+        flipud=0.0,                     # Vertical flip probability
+        fliplr=0.5                      # Horizontal flip probability
     )
     return model
 
 # =====================================================
-# Enhanced Inference with TTA
+# Step 4: Evaluation and Inference
 # =====================================================
-def detect_with_tta(model, img_path, conf=0.3):
-    results = model(
-        img_path,
-        conf=conf,
-        iou=0.5,
-        device=0,
-        augment=True,
-        agnostic_nms=True
-    )
+def evaluate_model(model):
+    metrics = model.val()
+    print(f"\nValidation Results:")
+    print(f"mAP50-95: {metrics.box.map:.2f}")
+    print(f"mAP50: {metrics.box.map50:.2f}")
+    print(f"Precision: {metrics.box.mp:.2f}")
+    print(f"Recall: {metrics.box.mr:.2f}")
+
+def detect_and_classify(model, img_path, conf=0.5):
+    # Ensure GPU is used
+    device = 0 if torch.cuda.is_available() else 'cpu'
+    print(f"Using device: {'GPU' if device == 0 else 'CPU'}")
     
+    # Check if the image path exists
+    assert os.path.exists(img_path), f"Image path not found: {img_path}"
+    
+    results = model(img_path, conf=conf, device=device)
+    
+    # Class indices for defects (0-5, excluding 3: Good Welding)
     defect_classes = {0, 1, 2, 4, 5}
-    detected = {int(box.cls.item()) for box in results[0].boxes}
-    results[0].show()
+    detected_classes = set()
     
-    print(f"\nDetected: {[model.names[c] for c in detected]}")
-    print("Defect Found" if detected & defect_classes else "No Defect")
+    for box in results[0].boxes:
+        detected_classes.add(int(box.cls.item()))
+    
+    has_defect = not detected_classes.isdisjoint(defect_classes)
+    
+    # Show results
+    results[0].show()
+    print("\nDetection Results:")
+    print(f"Detected classes: {[model.names[c] for c in detected_classes]}")
+    print("Defect Detected" if has_defect else "No Defect Found")
 
 # =====================================================
 # Main Execution
 # =====================================================
-if __name__ == "__main__":
-    # Verify dataset paths
-    for path in [TRAIN_IMAGES, VALID_IMAGES, TEST_IMAGES]:
-        assert os.path.exists(path), f"Path {path} does not exist"
+if _name_ == "_main_":
+    # Print paths for debugging
+    print(f"Train Images Path: {TRAIN_IMAGES}")
+    print(f"Validation Images Path: {VALID_IMAGES}")
+    print(f"Test Images Path: {TEST_IMAGES}")
+
+    # Verify paths
+    assert os.path.exists(TRAIN_IMAGES), f"Training images path not found: {TRAIN_IMAGES}"
+    assert os.path.exists(VALID_IMAGES), f"Validation images path not found: {VALID_IMAGES}"
+    assert os.path.exists(TEST_IMAGES), f"Test images path not found: {TEST_IMAGES}"
     
-    # Train model with attention
-    model = train_model()
+    # Train model (uncomment to train)
+    model = train_model()  # <--- UNCOMMENT THIS LINE TO START TRAINING
     
-    # Validate
-    metrics = model.val()
-    print(f"\nmAP50-95: {metrics.box.map:.2f}")
-    print(f"mAP50: {metrics.box.map50:.2f}")
+    # Load trained model
+    # model = YOLO('welding_defects/gpu_training/weights/best.pt')  # <--- LOAD TRAINED WEIGHTS IF NEEDED
+    
+    # Evaluate
+    evaluate_model(model)
     
     # Test detection
-    test_image = os.path.join(TEST_IMAGES, "sample.jpg")
-    detect_with_tta(model, test_image)
+    test_image = os.path.join(TEST_IMAGES, "sample.jpg")  # Update with your test image
+    print(f"Test Image Path: {test_image}")  # Debug statement
+    assert os.path.exists(test_image), f"Test image path not found: {test_image}"  # Verify test image path
+    detect_and_classify(model, test_image, conf=0.6)
